@@ -15,6 +15,7 @@ public class Calculate {
 	}
 	
 	public double evaluateExpression(){
+		//セットされた式より解を求める
 		String expression = this.expression;
 		expression = replaceInnerBrackets(expression);
 		return calculate(expression);
@@ -27,7 +28,7 @@ public class Calculate {
 	public static String replaceInnerBrackets(String expression){
 		
 		//含まれる括弧がネストしている場合、再帰的に外側の括弧から外していく
-		//入れ子の一番深い括弧内の式から解き、結果を元のexpressionに当てはめていく
+		//そうして入れ子の一番深い括弧内の式から解き、結果を元のexpressionに当てはめていく
 		if(expression.matches(".*\\([^\\)]*\\(.*")){
 			String deletedBrackets = deleteOuterBrackets(expression);
 			String innerBrackets = replaceInnerBrackets(deletedBrackets);
@@ -73,7 +74,7 @@ public class Calculate {
 		//ここで演算子の場合分けを行う
 		// ++ +- -+ -- *+ *- /+ /- + - を取り得るものと想定する（正負の符号が演算子としての記号に連続する場合を考えて）
 		String regex = (mode == MODE_PM) ? "(\\+\\+|\\+-|-\\+|--|\\+|-)" : "(\\*\\+|\\*-|/\\+|/-|\\*|/)";
-		Pattern pattern = Pattern.compile("[0-9]+\\.*[0-9]*" + regex + "[0-9]+\\.*[0-9]*");
+		Pattern pattern = Pattern.compile("(\\+|-|)[0-9]+\\.*[0-9]*" + regex + "[0-9]+\\.*[0-9]*");
 		Matcher matcher = pattern.matcher(expression);
 
 		//計算の余地がある限り処理を行う
@@ -85,21 +86,28 @@ public class Calculate {
 		while(matcher.find()){
 			//先頭に存在する符号があれば格納しておく
 			//なければ空文字を格納し、後続の処理結果への影響を無くす
-			String code = expression.matches("^[\\+-].*") ? String.valueOf(expression.charAt(0)) : "";
 			//式を一組検出する
 			String matchString = matcher.group();
+			String splitRegex = "(?<!^)" + regex;
 			//式を演算子で分割して値を取り出し、それぞれを配列に
-			String[] strValues = matchString.split(regex);
+			String[] strValues = matchString.split(splitRegex);
+			
+			// strValues[X] `operator` strValues[Y]で計算を行う
 			double[] values = {
-					Double.parseDouble(code + strValues[0]) //先頭に符号がついていた場合はcodeを値の前に付けて変換する
+					Double.parseDouble(strValues[0]) //先頭に符号がついていた場合はcodeを値の前に付けて変換する
 				   ,Double.parseDouble(strValues[1])
 			};
+			final double X = values[0];
+			final double Y = values[1];
+			//次のreplaceAllに備えて、+の符号が入ってた場合のシーケンスを考慮する
+			strValues[0] = strValues[0].replaceAll("\\+", "\\\\+");
 			//数字と小数点をすべて取り除き演算子を抽出
-			String operator = matchString.replaceAll("[0-9\\.]", "");
+			String operator = matchString.replaceAll("^" + strValues[0],"")
+					 					 .replaceAll(strValues[1], "");
 			//演算
-			double ans = Operator.getOperator(operator).calculate(values[0], values[1]);
+			double ans = OperatorType.init(operator).calc(X, Y);
 			//得た値を元の式に置き換えて次回へ
-			expression = expression.replace(code + matchString, "" + ans);
+			expression = expression.replace(matchString, "" + ans);
 			//新しい式に正規表現を適用する
 			matcher = pattern.matcher(expression);
 		}

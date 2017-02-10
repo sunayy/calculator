@@ -94,7 +94,7 @@ public class Calculate {
 			
 			// strValues[X] `operator` strValues[Y]で計算を行う
 			double[] values = {
-					Double.parseDouble(strValues[0]) //先頭に符号がついていた場合はcodeを値の前に付けて変換する
+					Double.parseDouble(strValues[0]) 
 				   ,Double.parseDouble(strValues[1])
 			};
 			final double X = values[0];

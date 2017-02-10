@@ -40,7 +40,6 @@ public enum OperatorType implements Calclatable{
 			return -1 * TIMES.calc(x, y);
 		case DIVIDE_MINUS:
 			return -1 * DIVIDE.calc(x, y);
-		//こんなのねぇよ
 		default :
 			throw new IllegalArgumentException();
 		}

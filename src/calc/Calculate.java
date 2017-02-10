@@ -111,7 +111,7 @@ public class Calculate {
 			//新しい式に正規表現を適用する
 			matcher = pattern.matcher(expression);
 		}
-		//それぞれのモードで計算し尽くした結果を返す
+		//それぞれのモード(加減・乗除)で計算し尽くした結果を返す
 		return expression;
 	}
 }
